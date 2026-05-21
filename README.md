@@ -37,10 +37,47 @@ kubectl rollout status statefulset/rabbitmq-rabbitmq-cluster -n rabbitmq
 
 The chart generates a shared self-signed certificate so all three replicas can answer on the same TLS endpoints. Your browser or client will warn until you trust the generated CA certificate.
 
+This setup does not enable mutual TLS. RabbitMQ still presents a server certificate on `15671` and `5671`, but clients are not required to present their own certificates.
+
 To export the CA certificate:
 
 ```bash
 kubectl get secret rabbitmq-rabbitmq-cluster-tls -n rabbitmq -o jsonpath='{.data.ca\.crt}' | base64 -d > rabbitmq-ca.crt
+```
+
+## Trust the local CA in one command
+
+The repository includes a helper that fetches the CA certificate from Kubernetes and installs it into the Linux trust store.
+
+```bash
+./scripts/trust-local-ca.sh
+```
+
+The script supports both `update-ca-certificates` and `update-ca-trust`. If your browser still warns afterwards, restart it. Firefox may also need the CA imported into its own certificate store.
+
+## Use an OpenSSL-generated certificate instead
+
+If you want the chart to use a certificate generated outside Helm, create a Kubernetes TLS secret with the provided helper and point the chart at it.
+
+```bash
+./scripts/generate-tls-secret.sh
+
+helm upgrade --install rabbitmq charts/rabbitmq-cluster \
+  --namespace rabbitmq \
+  --create-namespace \
+  --set rabbitmq.tls.existingSecret=rabbitmq-rabbitmq-cluster-tls-local
+
+kubectl rollout status statefulset/rabbitmq-rabbitmq-cluster -n rabbitmq
+```
+
+The helper uses OpenSSL to generate a local CA and a server certificate signed by that CA. It includes `localhost` and the default service DNS names in the SAN list so the browser and clients can validate the server certificate once the CA is trusted.
+
+If you need different names, override them when generating the secret:
+
+```bash
+TLS_SECRET_NAME=my-rabbitmq-tls \
+EXTRA_DNS_NAMES=broker.local,rmq.local \
+./scripts/generate-tls-secret.sh
 ```
 
 ## Persistence

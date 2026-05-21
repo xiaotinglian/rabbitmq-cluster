@@ -40,6 +40,14 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- printf "%s-auth" (include "rabbitmq-cluster.fullname" .) -}}
 {{- end -}}
 
-{{- define "rabbitmq-cluster.tlsSecretName" -}}
+{{- define "rabbitmq-cluster.generatedTlsSecretName" -}}
 {{- printf "%s-tls" (include "rabbitmq-cluster.fullname" .) -}}
+{{- end -}}
+
+{{- define "rabbitmq-cluster.tlsSecretName" -}}
+{{- if .Values.rabbitmq.tls.existingSecret -}}
+{{- .Values.rabbitmq.tls.existingSecret -}}
+{{- else -}}
+{{- include "rabbitmq-cluster.generatedTlsSecretName" . -}}
+{{- end -}}
 {{- end -}}

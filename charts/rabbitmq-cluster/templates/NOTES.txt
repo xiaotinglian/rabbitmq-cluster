@@ -6,7 +6,11 @@ Management UI:
 AMQPS:
   amqps://{{ .Values.auth.username }}:{{ .Values.auth.password }}@localhost:{{ .Values.service.amqps.port }}
 
-If your browser or client does not trust the self-signed certificate yet, export the chart-generated CA certificate:
-  kubectl get secret {{ include "rabbitmq-cluster.tlsSecretName" . }} -n {{ .Release.Namespace }} -o jsonpath='{.data.ca\.crt}' | base64 -d > rabbitmq-ca.crt
+If your browser or client does not trust the self-signed certificate yet, install the CA locally:
+  ./scripts/trust-local-ca.sh
+
+If you want to replace the chart-generated certificate with an OpenSSL-generated one:
+  ./scripts/generate-tls-secret.sh
+  helm upgrade --install {{ .Release.Name }} charts/rabbitmq-cluster --namespace {{ .Release.Namespace }} --create-namespace --set rabbitmq.tls.existingSecret={{ .Release.Name }}-rabbitmq-cluster-tls-local
 
 If localhost access is not working, recreate kind with the repository's kind-config.yaml so host ports 5671 and 15671 map to the service NodePorts.
