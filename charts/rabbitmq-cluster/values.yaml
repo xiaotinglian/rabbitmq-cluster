@@ -1,0 +1,48 @@
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 3
+clusterName: rabbitmq-local
+clusterDomain: cluster.local
+terminationGracePeriodSeconds: 120
+
+image:
+  repository: rabbitmq
+  tag: "4.3-management"
+  pullPolicy: IfNotPresent
+
+auth:
+  username: admin
+  password: admin123
+  erlangCookie: local-rabbitmq-cookie
+
+service:
+  type: NodePort
+  amqps:
+    port: 5671
+    nodePort: 30671
+  management:
+    port: 15671
+    nodePort: 31671
+
+rabbitmq:
+  discoveryRetryLimit: 10
+  discoveryRetryInterval: 500
+  clusterPartitionHandling: pause_minority
+  queueLeaderLocator: balanced
+  tls:
+    validityDays: 3650
+
+persistence:
+  enabled: false
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  storageClass: ""
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+podAnnotations: {}
+podLabels: {}

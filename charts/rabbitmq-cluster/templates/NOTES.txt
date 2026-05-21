@@ -1,0 +1,12 @@
+RabbitMQ is exposed through fixed NodePorts intended for a kind cluster created with the repository's kind-config.yaml.
+
+Management UI:
+  https://localhost:{{ .Values.service.management.port }}
+
+AMQPS:
+  amqps://{{ .Values.auth.username }}:{{ .Values.auth.password }}@localhost:{{ .Values.service.amqps.port }}
+
+If your browser or client does not trust the self-signed certificate yet, export the chart-generated CA certificate:
+  kubectl get secret {{ include "rabbitmq-cluster.tlsSecretName" . }} -n {{ .Release.Namespace }} -o jsonpath='{.data.ca\.crt}' | base64 -d > rabbitmq-ca.crt
+
+If localhost access is not working, recreate kind with the repository's kind-config.yaml so host ports 5671 and 15671 map to the service NodePorts.

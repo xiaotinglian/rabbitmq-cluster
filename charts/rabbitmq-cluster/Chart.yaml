@@ -1,0 +1,6 @@
+apiVersion: v2
+name: rabbitmq-cluster
+description: RabbitMQ 4.3 management cluster for local kind deployments
+type: application
+version: 0.1.0
+appVersion: "4.3"
